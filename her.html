@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A little question for you 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush: #ffe6ec;
+    --petal: #ffc2d1;
+    --rose: #e8456b;
+    --rose-deep: #c92f56;
+    --plum: #4a1d3a;
+    --paper: #fffafb;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Nunito", system-ui, sans-serif;
+    color: var(--plum);
+    background: radial-gradient(circle at 20% 15%, #fff 0, var(--blush) 45%, var(--petal) 100%);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: 16px;
+  }
+
+  
+  .hearts { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .hearts span {
+    position: absolute;
+    bottom: -40px;
+    opacity: .55;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    to { transform: translateY(-115vh) rotate(25deg); opacity: 0; }
+  }
+
+  
+  .card {
+    position: relative;
+    z-index: 1;
+    width: min(440px, 100%);
+    background: var(--paper);
+    border-radius: 28px 28px 28px 6px;
+    padding: 36px 28px 32px;
+    text-align: center;
+    box-shadow: 0 18px 0 -8px var(--petal), 0 30px 50px -20px rgba(201, 47, 86, .35);
+    animation: pop .7s cubic-bezier(.2, 1.4, .4, 1) both;
+  }
+  @keyframes pop { from { transform: scale(.6) rotate(-4deg); opacity: 0; } }
+
+  .bear { font-size: 76px; line-height: 1; display: inline-block; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-8px) rotate(3deg); } }
+
+  .hi { font-family: "Caveat", cursive; font-size: 30px; margin-top: 12px; color: var(--rose); }
+  h1 { font-family: "Caveat", cursive; font-size: clamp(38px, 9vw, 50px); line-height: 1.05; margin: 6px 0 10px; }
+  .sub { font-size: 16px; line-height: 1.5; opacity: .8; margin-bottom: 26px; }
+
+  .buttons { display: flex; justify-content: center; align-items: center; gap: 18px; min-height: 64px; }
+  button {
+    font: 800 18px "Nunito", sans-serif;
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 30px;
+    cursor: pointer;
+    transition: transform .15s, background .2s;
+  }
+  button:focus-visible { outline: 3px solid var(--plum); outline-offset: 3px; }
+  #yes { background: var(--rose); color: #fff; box-shadow: 0 6px 0 var(--rose-deep); }
+  #yes:hover { transform: translateY(-2px); }
+  #yes:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--rose-deep); }
+  #no { background: #f1dfe5; color: var(--plum); }
+
+  .tease { min-height: 24px; margin-top: 20px; font-weight: 800; color: var(--rose-deep); }
+
+ 
+  .yay { display: none; }
+  .done .ask { display: none; }
+  .done .yay { display: block; animation: pop .6s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .yay .bear { font-size: 96px; }
+  .yay h1 { font-size: clamp(42px, 11vw, 58px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hearts, .bear { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+
+<main class="card" id="card">
+  <section class="ask">
+    <div class="bear">🐻</div>
+    <p class="hi">Hey, my favourite person…</p>
+    <h1>Will you be my gurlll?</h1>
+    <p class="sub">I promise lots of hugs, silly jokes and snacks I’ll pretend I didn’t steal from you.</p>
+    <div class="buttons">
+      <button id="yes">Yes 💖</button>
+      <button id="no">No</button>
+    </div>
+    <p class="tease" id="tease" aria-live="polite"></p>
+  </section>
+
+  <section class="yay">
+    <div class="bear">🥰</div>
+    <h1>Yaaay! I knew it!</h1>
+    <p class="sub">You just made me the happiest person in the world. 💕</p>
+  </section>
+</main>
+
+<script>
+  
+  const teases = [
+    "Are you sure? 🥺",
+    "Think again, please…",
+    "Pretty please? 🙏",
+    "That button is shy, try the other one 😌",
+    "Nice try 😏",
+    "You can’t catch it!",
+    "My heart is breaking 💔",
+    "Okay okay, just press Yes 💖"
+  ];
+
+  const yes = document.getElementById("yes");
+  const no = document.getElementById("no");
+  const tease = document.getElementById("tease");
+  let dodges = 0;
+  let scale = 1;
+
+  
+  function dodge(e) {
+    if (e) e.preventDefault();
+
+    no.style.position = "fixed";
+    no.style.zIndex = 5;
+
+    const pad = 12;
+    const maxX = window.innerWidth - no.offsetWidth - pad;
+    const maxY = window.innerHeight - no.offsetHeight - pad;
+    no.style.left = Math.max(pad, Math.random() * maxX) + "px";
+    no.style.top = Math.max(pad, Math.random() * maxY) + "px";
+
+    tease.textContent = teases[dodges % teases.length];
+    dodges++;
+
+    
+    scale = Math.min(scale + 0.12, 2);
+    yes.style.transform = "scale(" + scale + ")";
+  }
+
+  no.addEventListener("mouseenter", dodge);
+  no.addEventListener("touchstart", dodge, { passive: false });
+  no.addEventListener("click", dodge); // keyboard / fallback
+
+ 
+  yes.addEventListener("click", () => {
+    document.getElementById("card").classList.add("done");
+    no.style.display = "none";
+    for (let i = 0; i < 40; i++) setTimeout(() => heart(true), i * 40);
+  });
+
+  
+  const box = document.getElementById("hearts");
+  const symbols = ["💗", "💖", "💕", "🌸", "💘"];
+  function heart(burst) {
+    const h = document.createElement("span");
+    h.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.fontSize = 16 + Math.random() * 28 + "px";
+    h.style.animationDuration = (burst ? 3 + Math.random() * 2 : 7 + Math.random() * 7) + "s";
+    box.appendChild(h);
+    setTimeout(() => h.remove(), 15000);
+  }
+  setInterval(heart, 600);
+  for (let i = 0; i < 8; i++) setTimeout(heart, i * 150);
+</script>
+</body>
+</html>
